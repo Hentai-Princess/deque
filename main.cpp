@@ -59,16 +59,14 @@ deque<int> LoadFromFile(ifstream &fin) {
 
 //Преобразование дека с циклом for
 deque<int> Modify(deque<int> &dec1) {
-    int max = 0;
-    int min = 0;
     deque<int> dec = dec1;
+    int max = dec[1];
+    int min = dec[1];
     int len = dec.size();
     for (const int i : dec) {
         if (i > max) {
             max = i;
         }
-    }
-    for (const int i : dec) {
         if (i < min) {
             min = i;
         }
@@ -81,13 +79,13 @@ deque<int> Modify(deque<int> &dec1) {
     return dec;
 }
 
-//Преобразование дека (заменяем положительные элементы максимумом) с итераторами
+//Преобразование дека с итераторами
 void Modify(deque<int>::iterator begin, deque<int>::iterator end) {
-    int max = 0;
-    int min = 0;
+    int max = *begin;
     for (deque<int>::iterator i = begin; i != end; i++) {
         if (*i > max) max = *i;
     }
+    int min = *begin;
     for (deque<int>::iterator i = begin; i != end; i++) {
         if (*i < min) min = *i;
     }
@@ -96,24 +94,24 @@ void Modify(deque<int>::iterator begin, deque<int>::iterator end) {
     }
 }
 
-//Преобразование дека (заменяем положительные элементы максимумом) с transform тут не все
-void Modify_Transform(deque<int>::iterator &begin, deque<int>::iterator end) {
-    int max = 0;
-    int min = 0;
+//Преобразование дека с transform
+void Modify_Transform(deque<int> &dec) {
+    int max = *dec.begin();
+    int min = *dec.begin();
+    transform(dec.begin(), dec.end(), dec.begin(), [&max](int i) { if (i > max) max = i;    return i; });
+    transform(dec.begin(), dec.end(), dec.begin(), [&min](int i) { if (i < min) min = i;    return i; });
     int d = max-min;
-    transform(begin, end, begin, [&max](int i) { if (i > max) max = i;    return i; });
-    transform(begin, end, begin, [&min](int i) { if (i < min) min = i;    return i; });
-    transform(begin, end, begin, [d](int i) {return i & 1 ? i : d; });
+    transform(dec.begin(), dec.end(), dec.begin(), [d](int i) {return i & 1 ? i : d; });
 }
 
-//Преобразование дека (заменяем положительные элементы максимумом) с for_each тут не все
-void Modify_For_Each(deque<int>::iterator begin, deque<int>::iterator end) {
-    int max = 0;
-    int min = 0;
+//Преобразование дека с for_each
+void Modify_For_Each(deque<int> &dec) {
+    int max = *dec.begin();
+    int min = *dec.begin();
+    for_each(dec.begin(), dec.end(), [&max](int i) { if (i > max) max = i; });
+    for_each(dec.begin(), dec.end(), [&min](int i) { if (i < min) min = i; });
     int d = max-min;
-    for_each(begin, end, [&max](int i) { if (i > max) max = i; });
-    for_each(begin, end, [&min](int i) { if (i < min) min = i; });
-    for_each(begin, end, [d](int &i) { i= i & 1 ? i : d; });
+    for_each(dec.begin(), dec.end(), [d](int &i) { i= i & 1 ? i : d; });
 }
 
 //Подсчет суммы элементов
@@ -147,17 +145,20 @@ int Menu(int flag) {
     cout << 1 << " - " << "Создать новый файл со случайной последовательностью чисел." << endl;
     cout << 2 << " - " << "Загрузить последовательность из файла." << endl;
     if (flag > 0) {
-        cout << 3 << " - " << "Заменить каждое четное число на разность максимального и минимального чисел." << endl;
-        cout << 4 << " - " << "Вычислить сумму членов последовательности." << endl;
-        cout << 5 << " - " << "Вычислить среднее арифметическое." << endl;
-        cout << 6 << " - " << "Записать последовательность в файл." << endl;
-        cout << 7 << " - " << "Напечатать последовательность." << endl;
+        cout << 3 << " - " << "Заменить каждое четное число на разность максимального и минимального чисел. for" << endl;
+        cout << 4 << " - " << "iterators" << endl;
+        cout << 5 << " - " << "transform" << endl;
+        cout << 6 << " - " << "for each" << endl;
+        cout << 7 << " - " << "Вычислить сумму членов последовательности." << endl;
+        cout << 8 << " - " << "Вычислить среднее арифметическое." << endl;
+        cout << 9 << " - " << "Записать последовательность в файл." << endl;
+        cout << 10 << " - " << "Напечатать последовательность." << endl;
     }
     cout << 0 << " - " << "Выход." << endl<<endl;
     cout << "---------------------------------------" << endl;
 
     int res;
-    while (!(cin >> res) || flag <= 0 && (res > 2) || (flag > 0) && (res > 7));
+    while (!(cin >> res) || (flag <= 0 && (res > 2)) || ((flag > 0) && (res > 10)));
     return res;
     
 }
@@ -168,7 +169,7 @@ bool InputQuery(string question) {
     cout << 1 << " - Да" << endl;
     cout << 0 << " - Нет" << endl;
     int res;
-    while (!(cin >> res) || res != 0 && res != 1);
+    while (!(cin >> res) || ((res != 0) && (res != 1)));
     return res==1;
 }
 
@@ -216,23 +217,29 @@ int main() {
                 break;
             case 3:
                 dec = Modify(dec);
-                //Modify(dec.begin(), dec.end());
-                //Modify_Transform(dec.begin(), dec.end());
-                //Modify_For_Each(dec.begin(), dec.end());
                 break;
             case 4:
-                cout << "Сумма элементов равна " << Summ(dec) << endl;
+                Modify(dec.begin(), dec.end());
                 break;
             case 5:
-                cout << "Среднее арифметическое равно " << MidArith(dec) << endl;
+                Modify_Transform(dec);
                 break;
             case 6:
+                Modify_For_Each(dec);
+                break;
+            case 7:
+                cout << "Сумма элементов равна " << Summ(dec) << endl;
+                break;
+            case 8:
+                cout << "Среднее арифметическое равно " << MidArith(dec) << endl;
+                break;
+            case 9:
                 FileName = InputFileName();
                 ofs.open(FileName);
                 Print(ofs, dec);
                 ofs.close();
                 break;
-            case 7:
+            case 10:
                 Print(cout, dec);
                 break;
             default:
